@@ -28,6 +28,8 @@ public:
 	void removeListener(std::function<void(SpectrumAnalyzer*,
 		std::shared_ptr<Spectrum>, std::shared_ptr<Spectrum>)>);
 
+	std::shared_ptr<AudioDevice> getAudioDevice();
+
 	std::shared_ptr<Spectrum> getLeftSpectrum();
 	std::shared_ptr<Spectrum> getRightSpectrum();
 
@@ -52,9 +54,12 @@ private:
 //	std::mutex bufferMutex;
 
 	//FFT stuff
-	fftw_complex *fftIn, *fftOut;
-	fftw_plan fftPlan;
-	std::vector<double> window;
+	fftw_complex *fftBlockIn, *fftBlockOut;
+	fftw_plan fftBlockPlan;
+	fftw_complex *fftChunkIn, *fftChunkOut;
+	fftw_plan fftChunkPlan;
+	unsigned int blockEndIndex, chunkStartIndex;
+	std::vector<double> blockWindow, chunkWindow;
 
 	//Signals
 	boost::signals2::signal<void(SpectrumAnalyzer*,

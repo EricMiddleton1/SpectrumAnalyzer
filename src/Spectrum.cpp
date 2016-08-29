@@ -75,12 +75,24 @@ Spectrum::Spectrum(double fStart, double fEnd, double binsPerOctave) {
 		//Calculate new end frequency based on standard octave frequency doubling
 		double curEnd = curFreq * multiplier;
 
-		//Construct a new frequency bin at the end of the vector
-		bins.emplace_back(curFreq, curEnd);
+		//If center frequency for this bin is above fEnd, combine this bin
+		//with the previous bin
+		double fCenter = std::sqrt(curFreq*curEnd);
+		if(fCenter > fEnd) {
+			bins[bins.size() - 1].fEnd = fEnd; //Extend the previous bin
 
-		std::cout << "New bin: [" << curFreq << "hz, " << curEnd << "hz)\n";
+			std::cout << "Extending previous bin fEnd to " << fEnd << "Hz\n";
 
-		curFreq = curEnd;
+			break;
+		}
+		else {
+			//Construct a new frequency bin at the end of the vector
+			bins.emplace_back(curFreq, curEnd);
+
+			std::cout << "New bin: [" << curFreq << "hz, " << curEnd << "hz)\n";
+
+			curFreq = curEnd;
+		}
 	}
 
 	std::cout << std::endl;

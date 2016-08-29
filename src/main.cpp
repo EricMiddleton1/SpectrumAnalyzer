@@ -13,8 +13,8 @@
 #include <X11/Xos.h>
 
 #define SAMPLE_RATE		48000
-#define CHUNK_SIZE		512
-#define CHUNKS_PER_BLOCK	8
+#define CHUNK_SIZE		256
+#define CHUNKS_PER_BLOCK	16
 
 #define THREAD_COUNT	1
 
@@ -131,9 +131,12 @@ void x_close(X11_t* x11) {
 void x_drawSpectrum(X11_t* x11, std::shared_ptr<Spectrum> spectrum) {
 	if(!displayMutex.try_lock())
 		return;
+	
+	static std::unique_ptr<Spectrum> prevSpec;
 
-	unsigned int width = WIN_WIDTH, height = WIN_HEIGHT;
-	double dbMin = 0, dbMax = 150;
+	unsigned int width = WIN_WIDTH, height = WIN_HEIGHT, border = 10,
+		maxBarHeight = height - 4*border, maxWidth = width - 4*border;
+	double dbMin = -120, dbMax = 0.;
 
 /*
 	XGetGeometry(x11->dis, x11->win, &w, &i, &i, &width, &height,
@@ -144,25 +147,43 @@ void x_drawSpectrum(X11_t* x11, std::shared_ptr<Spectrum> spectrum) {
 
 	int binCount = binEnd - binBegin;
 
+	if(!prevSpec) {
+		prevSpec = std::make_unique<Spectrum>(*spectrum.get());
+	}
+
 	//Clear screen
 	XClearWindow(x11->dis, x11->win);
 
+	XDrawRectangle(x11->dis, x11->win, x11->gc, border, border, width-2*border,
+		height - 2*border);
+
 	for(int i = 0; i < binCount; ++i) {
-		double db = (binBegin + i)->getEnergyDB();
+		//double db = (binBegin + i)->getEnergyDB();
+		double curDB = (spectrum->begin()+i)->getEnergyDB(),
+			db = (prevSpec->begin()+i)->getEnergyDB();
+
+		if(curDB > db) {
+			db = curDB;
+		}
+		else {
+			db = std::max(curDB, db - 0.75);
+		}
+
+		(prevSpec->begin()+i)->setEnergyDB(db);
 
 		if(db < dbMin)
 			db = dbMin;
 		if(db > dbMax)
 			db = dbMax;
 
-		int barHeight = height * (db - dbMin) / (dbMax - dbMin),
-			barWidth = width / binCount / 2;
+		int barHeight = maxBarHeight * (db - dbMin) / (dbMax - dbMin),
+			barWidth = maxWidth / binCount / 2;
 
-		if(barHeight < 10)
-			barHeight = 10;
+		if(barHeight < 1)
+			barHeight = 1;
 
-		int x = i * width / binCount,
-			y = height - barHeight;
+		int x = i * maxWidth / binCount + 2*border,
+			y = height - 2*border - barHeight;
 
 		XFillRectangle(x11->dis, x11->win, x11->gc, x, y, barWidth, barHeight);
 	}

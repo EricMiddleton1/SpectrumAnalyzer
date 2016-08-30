@@ -18,7 +18,7 @@ class SpectrumAnalyzer
 {
 public:
 	SpectrumAnalyzer(std::shared_ptr<AudioDevice>& audioDevice,
-		unsigned int chunksPerBlock, double fStart, double fEnd,
+		double fStart, double fEnd,
 		double binsPerOctave, unsigned int threadCount = 4);
 	~SpectrumAnalyzer();
 

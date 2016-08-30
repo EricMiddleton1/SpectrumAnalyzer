@@ -13,14 +13,13 @@
 #include <X11/Xos.h>
 
 #define SAMPLE_RATE		48000
-#define CHUNK_SIZE		256
-#define CHUNKS_PER_BLOCK	16
+#define CHUNK_SIZE		512
 
 #define THREAD_COUNT	1
 
-#define FSTART	30
-#define FEND		20000
-#define BINS_PER_OCTAVE	3
+#define FSTART	32.7032			//C1
+#define FEND		16744.0384	//C10
+#define BINS_PER_OCTAVE	6
 
 #define WIN_WIDTH		1000
 #define WIN_HEIGHT	600
@@ -49,8 +48,8 @@ int main() {
 		std::make_shared<AudioDevice>(AudioDevice::DEFAULT_DEVICE,
 		SAMPLE_RATE, CHUNK_SIZE));
 
-	SpectrumAnalyzer spectrumAnalyzer(audioDevice, CHUNKS_PER_BLOCK,
-		FSTART, FEND, BINS_PER_OCTAVE, THREAD_COUNT);
+	SpectrumAnalyzer spectrumAnalyzer(audioDevice, FSTART, FEND,
+		BINS_PER_OCTAVE, THREAD_COUNT);
 
 	spectrumAnalyzer.addListener([&x11](auto, auto left, auto) {
 /*

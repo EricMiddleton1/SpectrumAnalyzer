@@ -1,15 +1,31 @@
 #include "SpectrumAnalyzer.hpp"
 
 SpectrumAnalyzer::SpectrumAnalyzer(std::shared_ptr<AudioDevice>& _audioDevice,
-	unsigned int chunksPerBlock, double fStart, double fEnd,
+	double fStart, double fEnd,
 	double binsPerOctave, unsigned int threadCount)
 	:	workUnit(std::make_unique<boost::asio::io_service::work>(ioService))
 	,	leftSpectrum(std::make_shared<Spectrum>(fStart, fEnd, binsPerOctave))
 	,	rightSpectrum(std::make_shared<Spectrum>(fStart, fEnd, binsPerOctave))
 	,	audioDevice(_audioDevice)
-	,	chunkSize{audioDevice->getBlockSize()}
-	,	blockSize{chunkSize * chunksPerBlock} {
+	,	chunkSize{audioDevice->getBlockSize()} {
+
+	//Determine optimum block size
+	double minResolution = leftSpectrum->begin()->getFreqEnd() -
+		leftSpectrum->begin()->getFreqStart();
 	
+	unsigned int chunksPerBlockPower =
+		std::ceil(std::log2(audioDevice->getSampleRate() /
+		(minResolution * chunkSize)));
+	
+	blockSize = chunkSize * (1 << chunksPerBlockPower);
+
+	std::cout << "[Info] For minimum resolution of " << (int)(minResolution+0.5)
+		<< "Hz, using block size of " << blockSize << std::endl;
+	
+	//resolution = Fs / blockSize
+	//blockSize = Fs/resolution
+	//chunksPerBlock = blockSize / chunkSize = Fs/(resolution * chunkSize)
+
 	//Initialize FFTW stuff
 	//fftIn, fftOut, fftPlan
 	fftBlockIn = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * blockSize);

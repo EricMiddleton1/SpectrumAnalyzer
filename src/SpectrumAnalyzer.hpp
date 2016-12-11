@@ -19,7 +19,7 @@ class SpectrumAnalyzer
 public:
 	SpectrumAnalyzer(std::shared_ptr<AudioDevice>& audioDevice,
 		double fStart, double fEnd,
-		double binsPerOctave, unsigned int threadCount = 4);
+		double binsPerOctave, unsigned int maxBlockSize, unsigned int threadCount = 4);
 	~SpectrumAnalyzer();
 
 	void addListener(std::function<void(SpectrumAnalyzer*,
@@ -49,17 +49,13 @@ private:
 	std::shared_ptr<Spectrum> leftSpectrum, rightSpectrum;
 
 	//Audio sample buffers
-//	int16_t *leftBuffer, *rightBuffer;
 	std::vector<int16_t> leftBuffer, rightBuffer;
 //	std::mutex bufferMutex;
 
 	//FFT stuff
-	fftw_complex *fftBlockIn, *fftBlockOut;
-	fftw_plan fftBlockPlan;
-	fftw_complex *fftChunkIn, *fftChunkOut;
-	fftw_plan fftChunkPlan;
-	unsigned int blockEndIndex, chunkStartIndex;
-	std::vector<double> blockWindow, chunkWindow;
+	fftw_complex *fftIn, *fftOut;
+	fftw_plan fftPlan;
+	std::vector<double> fftWindow;
 
 	//Signals
 	boost::signals2::signal<void(SpectrumAnalyzer*,

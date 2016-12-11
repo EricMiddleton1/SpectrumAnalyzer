@@ -89,7 +89,8 @@ Spectrum::Spectrum(double fStart, double fEnd, double binsPerOctave) {
 			//Construct a new frequency bin at the end of the vector
 			bins.emplace_back(curFreq, curEnd);
 
-			std::cout << "New bin: [" << curFreq << "hz, " << curEnd << "hz)\n";
+			std::cout << "New bin: [" << curFreq << "hz, " << curEnd << "hz), Q = "
+				<< (bins.end() - 1)->getQ() << "\n";
 
 			curFreq = curEnd;
 		}
@@ -111,6 +112,14 @@ FrequencyBin& Spectrum::get(double frequency) {
 	}
 
 	return *foundBin;
+}
+
+FrequencyBin& Spectrum::getByIndex(size_t index) {
+	return bins[index];
+}
+
+size_t Spectrum::getBinCount() {
+	return bins.size();
 }
 
 void Spectrum::clear() {
@@ -144,8 +153,16 @@ double Spectrum::getAverageEnergy() const {
 	return sum / bins.size();
 }
 
+double Spectrum::getAverageEnergyDB() const {
+	return 20. * std::log10(getAverageEnergy());
+}
+
 double Spectrum::getTotalEnergy() const {
 	return sum;
+}
+
+double Spectrum::getTotalEnergyDB() const {
+	return 20. * std::log10(getTotalEnergy());
 }
 
 double Spectrum::getMinFrequency() const {

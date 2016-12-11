@@ -47,14 +47,21 @@ public:
 
 	Spectrum(double fStart, double fEnd, double binsPerOctave);
 
+	size_t getBinCount();
+
 	FrequencyBin& get(double frequency);
+
+	FrequencyBin& getByIndex(size_t index);
+
 
 	void clear();
 
 	void updateStats();
 
 	double getAverageEnergy() const;
+	double getAverageEnergyDB() const;
 	double getTotalEnergy() const;
+	double getTotalEnergyDB() const;
 
 	double getMinFrequency() const;
 	double getMaxFrequency() const;
